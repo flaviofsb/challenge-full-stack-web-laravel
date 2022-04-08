@@ -13,9 +13,10 @@ class Students extends Model
         'nome',
         'email',        
         'cpf',
+        'ra',
     ];
 
-    protected $primaryKey = 'ra';
+    protected $primaryKey = 'id';
 
     protected $keyType = 'int';
 
