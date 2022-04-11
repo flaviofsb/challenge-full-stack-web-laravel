@@ -18,7 +18,7 @@ const routes = [
   }
   ,
   {
-    path: '/edicao',
+    path: '/edicao/:id',
     name: 'AlunosEdicao',
     component: () => import('../views/AlunosEdicao.vue')
   }

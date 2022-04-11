@@ -1,8 +1,75 @@
+
 <template>
   <div>
      <Menu title="consulta" />    
 
     <div class="container">
+      <template>
+        <div class="text-center">
+          <v-dialog
+            v-model="dialog"
+            width="500"
+          >
+    
+
+            <v-card>
+              <v-card-title class="text-h5 blue lighten-2">
+                Sucesso
+              </v-card-title>
+
+              <v-card-text class='mt-5'>
+                Aluno excluído com sucesso.
+              </v-card-text>
+
+              <v-divider></v-divider>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="dialog = false"
+                >
+                  OK
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </div>
+      </template>
+      <template>
+        <div class="text-center">
+          <v-dialog
+            v-model="dialogErro"
+            width="500"
+          >
+    
+
+            <v-card>
+              <v-card-title class="text-h5 red lighten-2">
+                Erro
+              </v-card-title>
+
+              <v-card-text class='mt-5'>
+                Não foi possível excluir o aluno.
+              </v-card-text>
+
+              <v-divider></v-divider>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="dialogErro = false"
+                >
+                  OK
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </div>
+      </template>
       <v-card>
           <v-card-title>
             <v-text-field class="busca"
@@ -23,7 +90,7 @@
             
           <v-data-table
                 :headers="headers"
-                :items=$store.state.alunos
+                :items=alunos
                 :items-per-page="5"
                 class="elevation-1"
                 :search="search"
@@ -48,19 +115,18 @@
               </template>
 
               <template v-slot:item.actions="{ item }">
-                <v-icon
-                  small
-                  class="mr-2"
-                  @click="editItem(item)"
+                
+                <v-btn  style="border:0; background: transparent; box-shadow:0;"                
+                  :to="'/edicao/' + item.id"
                 >
                   [Editar]
-                </v-icon>
-                <v-icon
-                  small
+                </v-btn>
+                <v-btn class="botaoTabela"
+                  
                   @click="deleteItem(item)"
                 >
                   [Excluir]
-                </v-icon>
+                </v-btn>
               </template>
               <template v-slot:no-data>
                 <v-btn
@@ -80,16 +146,31 @@
   </div>
 </template>
 <script>
-import Menu from '../components/Menu';
+import Vue from 'vue';
+import axios from 'axios';
+import VueAxios from 'vue-axios';
 
+Vue.use(VueAxios, axios)
+import Menu from '../components/Menu';
+import api from '../services/api.js'
 export default {
 
   components: {
     Menu
   },
+
+  mounted(){
+      //alert('monte 1')
+      this.carregaAlunos()
+  },
+
   data () {
       return {
+        selecionado:'',
         search: '',
+        alunos:[],
+        dialog: false,
+        dialogErro:false,
         dialogDelete: false,
         editedIndex: -1,
         headers: [
@@ -115,28 +196,47 @@ export default {
     },
   },
   methods: {
-    deleteItemConfirm () {
-    this.desserts.splice(this.editedIndex, 1)
-    this.closeDelete()
-    },
-    deleteItem (item) {
-        this.editedIndex = this.alunos.indexOf(item)
+      carregaAlunos(){
+        api.get('/students').then(response => { 
+          this.alunos = response.data
+        }) 
+      },
+      deleteItem (item) {
+       // this.editedIndex = this.desserts.indexOf(item)
         //this.editedItem = Object.assign({}, item)
         this.dialogDelete = true
-        //alert("ola" )
-    },    
-    closeDelete () {
-      this.dialogDelete = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
-    }
+        this.selecionado = item.id
+      },
+
+      deleteItemConfirm () {
+        //alert(this.selecionado)
+          //alert(this.selecionado)
+          api.delete('/students/'  + this.selecionado)
+          .then(response => {
+              console.log(response);          
+              this.dialog = true;
+              this.carregaAlunos()
+              
+          })
+          .catch(error => {
+              console.log(error);
+              
+            //  this.dialogErro = true;
+          });
+
+
+        this.closeDelete()
+      },
+
+
+      closeDelete () {
+        this.dialogDelete = false
+        
+      },
   },
   
 }
 </script>
-
 <style scoped>
 .container {
   padding: 20px;
@@ -144,5 +244,8 @@ export default {
 .busca { 
   margin-right: '40px';
 }
+.botaoTabela {
 
+  border:0 ; background: #f00;
+}
 </style>
